@@ -43,7 +43,7 @@ def parse_txt_to_jsonl(input_file, output_file):
         data['Webshare'] = webshare_match.group(1).strip() if webshare_match else None
 
         last_login_match = re.search(r'Last Login:\s*(.*)', block)
-        data['Last Login'] = last_login_match.group(1).strip() if last_login_match else ""
+        # data['Last Login'] = last_login_match.group(1).strip() if last_login_match else ""
 
         # Add to JSON data list
         json_data.append(data)

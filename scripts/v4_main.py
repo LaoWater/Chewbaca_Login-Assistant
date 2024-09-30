@@ -3,7 +3,7 @@ import threading
 import time
 from datetime import datetime
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, simpledialog
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -46,11 +46,9 @@ def access_webshare(entry):
         while len(driver.window_handles) > 0:
             time.sleep(1)
 
-
     except Exception as e:
-        # Raise exception to be handled in the calling function
-        raise e
-    
+        pass
+
     finally:
         driver.quit()
 
@@ -73,90 +71,138 @@ def update_last_login(jsonl_file, entry):
 
     print(f"Last Login updated for Case/CPR: {entry['Case/CPR']} to {current_time}")
 
+
+# Function to delete an entry from the JSONL file
+def delete_entry(jsonl_file, entry):
+    updated_entries = []
+    with open(jsonl_file, "r") as file:
+        for line in file:
+            data = json.loads(line.strip())
+            if data["Case/CPR"] != entry["Case/CPR"]:
+                updated_entries.append(data)
+
+    with open(jsonl_file, "w") as file:
+        for updated_entry in updated_entries:
+            file.write(json.dumps(updated_entry) + "\n")
+
+    print(f"Entry deleted for Case/CPR: {entry['Case/CPR']}")
+
+
+# Function to add a new database entry to the JSONL file
+def add_entry(jsonl_file):
+    user_input = simpledialog.askstring("Add Database", "Please paste the database information:")
+
+    if user_input:
+        # Parse the user input into the correct format
+        entry = {}
+        for line in user_input.split("\n"):
+            key, value = line.split(": ", 1)
+            entry[key] = value
+
+        # Ensure all required fields are present
+        required_fields = ["Case/CPR", "Client Pin", "Client Name", "User Name", "Password", "DB Server", "Instance", "DB Name", "Webshare"]
+        if all(field in entry for field in required_fields):
+            entry["Last Login"] = "Never"
+
+            # Append the new entry to the JSONL file
+            with open(jsonl_file, "a") as file:
+                file.write(json.dumps(entry) + "\n")
+
+            print(f"New entry added: {entry['Client Name']}")
+        else:
+            messagebox.showerror("Error", "Incomplete database information.")
+
+
 # Function to execute the access_webshare() when login button is pressed
 def login(entry, login_button, root):
     def run():
         try:
-            # Perform the webshare access
-            success_message = access_webshare(entry)
-            # Schedule showing success message in main thread
-            root.after(0, lambda: messagebox.showinfo("Success", success_message))
+            access_webshare(entry)
+            root.after(0, lambda: messagebox.showinfo("Success", "Login successful"))
         except Exception as e:
-            # Schedule showing error message in main thread
-            pass
-            # root.after(0, lambda: messagebox.showerror("Error", f"An error occurred during login: {str(e)}"))
+            root.after(0, lambda: messagebox.showerror("Error", f"An error occurred: {str(e)}"))
         finally:
-            # Re-enable the login button after login attempt in the main thread
             root.after(0, lambda: login_button.config(state=tk.NORMAL))
 
-    # Run the blocking access_webshare in a separate thread
     threading.Thread(target=run).start()
+
 
 # Load data from JSONL file
 def load_data(jsonl_file):
     try:
         with open(jsonl_file, "r") as file:
             entries = [json.loads(line.strip()) for line in file]
-
-        if entries:
-            return entries
-        else:
-            print("No entries found in the JSONL file.")
-            return []
+        return entries if entries else []
     except FileNotFoundError:
         messagebox.showerror("Error", f"JSONL file '{jsonl_file}' not found.")
         return []
 
+
 # Main function to set up and run the GUI
 def main(jsonl_file):
-    entries = load_data(jsonl_file)  # Load entries once
+    entries = load_data(jsonl_file)
     if entries:
         root = tk.Tk()
         root.title("Webshare Databases")
 
         tk.Label(root, text="Databases (Case/CPR - Last Login):").pack()
 
-        # Listbox to display all available projects with Case/CPR and Last Login
         listbox = tk.Listbox(root, selectmode=tk.SINGLE, width=50)
         for idx, entry in enumerate(entries):
-            last_login = entry.get("Last Login", "Never")  # Display "Never" if Last Login is not set
+            last_login = entry.get("Last Login", "Never")
             listbox.insert(idx, f"{idx + 1}. {entry['Case/CPR']} - Last Login: {last_login}")
         listbox.pack()
 
-        # Login button that executes access_webshare() when clicked
+        # Login button
         def on_login():
             selection = listbox.curselection()
             if selection:
                 selected_entry = entries[selection[0]]
-                update_last_login(jsonl_file, selected_entry)  # Update LastLogin before login
-                login_button.config(state=tk.DISABLED)  # Disable the button during login
+                update_last_login(jsonl_file, selected_entry)
+                login_button.config(state=tk.DISABLED)
                 login(selected_entry, login_button, root)
             else:
                 messagebox.showwarning("No Selection", "Please select a database from the list.")
 
         login_button = tk.Button(root, text="Login", command=on_login)
-        login_button.pack()
+        login_button.pack(side=tk.LEFT)
 
-        # Exit button to quit the program
+        # Delete button
+        def on_delete():
+            selection = listbox.curselection()
+            if selection:
+                selected_entry = entries.pop(selection[0])
+                delete_entry(jsonl_file, selected_entry)
+                listbox.delete(selection[0])
+            else:
+                messagebox.showwarning("No Selection", "Please select a database to delete.")
+
+        delete_button = tk.Button(root, text="Delete Database", command=on_delete)
+        delete_button.pack(side=tk.LEFT)
+
+        # Add button
+        def on_add():
+            add_entry(jsonl_file)
+            root.quit()
+
+        add_button = tk.Button(root, text="Add Database", command=on_add)
+        add_button.pack(side=tk.LEFT)
+
+        # Exit button
         def on_exit():
-            # Exit immediately without confirmation
             root.quit()
 
         exit_button = tk.Button(root, text="Exit", command=on_exit)
-        exit_button.pack()
+        exit_button.pack(side=tk.LEFT)
 
-        # Bind the Escape key to the exit function
         root.bind('<Escape>', lambda event: on_exit())
 
         root.mainloop()
     else:
         messagebox.showwarning("No Entries", "No entries found in the JSONL file.")
 
+
 # Example usage
 if __name__ == "__main__":
-    regenerate_json = False
-    # Execute the script as a command-line process
-    if regenerate_json:
-        subprocess.run(['python', './my_package/database_parser.py'], check=True)
     jsonl_file = "docs/parsed_chewbaca.jsonl"
     main(jsonl_file)
