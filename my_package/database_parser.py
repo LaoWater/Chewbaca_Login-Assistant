@@ -14,8 +14,8 @@ def parse_txt_to_jsonl(input_file, output_file):
         # Extract the fields using regular expressions, and handle potential None cases
         data = {}
         
-        case_match = re.search(r'Case/CPR:\s*(.*)', block)
-        data['Case/CPR'] = case_match.group(1).replace("##", "").strip() if case_match else None
+        case_match = re.search(r'Project:\s*(.*)', block)
+        data['Project'] = case_match.group(1).replace("##", "").strip() if case_match else None
 
 
         client_pin_match = re.search(r'Client Pin:\s*(\d+)', block)
@@ -42,7 +42,7 @@ def parse_txt_to_jsonl(input_file, output_file):
         webshare_match = re.search(r'Webshare:\s*(.*)', block)
         data['Webshare'] = webshare_match.group(1).strip() if webshare_match else None
 
-        last_login_match = re.search(r'Last Login:\s*(.*)', block)
+        # last_login_match = re.search(r'Last Login:\s*(.*)', block)
         # data['Last Login'] = last_login_match.group(1).strip() if last_login_match else ""
 
         # Add to JSON data list
