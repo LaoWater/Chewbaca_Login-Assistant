@@ -1,4 +1,6 @@
-#v6_main_modularize_and_improvedGUI#
+# Version 6 - Modularized, Improved GUI UX and flow 
+# Covered many bugs in the whole work flow
+# Now can be used continous and distributex in .exe
 
 import json
 import threading

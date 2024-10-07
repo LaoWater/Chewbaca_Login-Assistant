@@ -19,7 +19,7 @@ import random
 
 # Function to read the JSONL file and extract login information
 def get_login_information(project):
-    from scripts.v4_main import load_data
+    from scripts.v6_main import load_data
     # Load the data from the JSONL file
     data = load_data()
     # print(data)
@@ -224,7 +224,7 @@ def save_query_with_project_name(project_name):
         random_number = random.randint(1, 333)
         # Concatenate the project name with the random number for handlding Duplicates in case of multiple acceses
         name_with_random = f"{project_name}_{random_number}"
-        pyautogui.write(project_name)
+        pyautogui.write(name_with_random)
         time.sleep(0.5)
 
         # Step 5: Hit Enter to save
@@ -255,6 +255,8 @@ def transform_webshare(webshare):
 
 # Function to run the SQL query and press F5
 def run_sql_query(webshare):
+    from scripts.sensitive_data import get_sql_query
+
     # Step 1: Write the "Hello, World!" query
     query = "SELECT 'Hello, World!';"
     
@@ -266,37 +268,15 @@ def run_sql_query(webshare):
     pyautogui.press('f5')
     print("SQL query executed: Hello, World!")
 
-    # Step 3: Adding useful SELECT queries in a comment block (for future use)
+    # Step 3: Transform the webshare and fetch the SQL query using the new function
     transformed_path = transform_webshare(webshare)
-            # Step 2: Prepare the SQL commands using the transformed path
-    sql_update_1 = f"UPDATE iparam SET svalue = '{transformed_path}' \n WHERE stype IN ('SREPORTPATH','SREPORTTEMPPATH','SATTACHMENTPATH','SATTACHMENTTEMPPATH','SFILTERSPATH');"
-    sql_update_2 = f"UPDATE param SET sdefpath = '{transformed_path}';"
-    useful_selects = f"""
-    /* -- Search for all objects in the system
-    SELECT * FROM sys.objects;
+    sql_query = get_sql_query(transformed_path)
 
-    -- Search for a table by name
-    SELECT * FROM sys.tables WHERE name LIKE '%<table_name>%';
-
-    -- Search for tables with a specific column name
-    SELECT t.name AS TableName, c.name AS ColumnName
-    FROM sys.tables t
-    JOIN sys.columns c ON t.object_id = c.object_id
-    WHERE c.name LIKE '%<column_name>%';
-    */
-
-    /* The sacred paths have been prepared for your discretion,
-    if I can interest you to Run them */
-    {sql_update_1}
-    {sql_update_2}
-
-    /* Enjoy your Flight! */
-"""
-    # Use regular expression to replace any 2 or more spaces with a single space, but preserve newlines
-    formatted_for_sql_selects = re.sub(r' {2,}', '', useful_selects)
+    # Use regular expression to format the query string
+    formatted_sql_query = re.sub(r' {2,}', '', sql_query)
     
     # Write the useful queries as comments in the query editor
-    pyautogui.write(formatted_for_sql_selects)
+    pyautogui.write(formatted_sql_query)
     time.sleep(0.2)
 
 

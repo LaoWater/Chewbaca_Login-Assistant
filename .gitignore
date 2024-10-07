@@ -2,3 +2,4 @@
 /docs
 /venv
 /dist
+/scripts/sensitive.data.py
