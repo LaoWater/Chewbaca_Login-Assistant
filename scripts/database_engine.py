@@ -101,6 +101,7 @@ def bring_ssms_to_foreground(retries=100, delay=1):
     print("SSMS found, wait an additional 1 seconds to allow full initialization and activate.")
     time.sleep(1)  # Allow SSMS to fully initialize
 
+    # exit()
     # Activate SSMS window using pywin32
     try:
         hwnd = ssms_window._hWnd  # Get the window handle
@@ -110,7 +111,7 @@ def bring_ssms_to_foreground(retries=100, delay=1):
     except Exception as e:
         print(f"Error while activating SSMS window: {e} \n Entered alt-tab save_Method")
         # Call the Alt-Tab function if activation fails, this means there has been key/mouse input between initialization and Activation
-        location = find_new_query_image()
+        location = find_new_image()
         if not location:
             alt_tab_to_ssms()
         print("Continuing with mouse movement...")
@@ -118,6 +119,15 @@ def bring_ssms_to_foreground(retries=100, delay=1):
 
 # Function to interact with the SSMS login form
 def fill_ssms_login(server_name, username, password):
+    # Loop until ssms 100% becomes active
+    valid_ssms_window_start = None
+    while not valid_ssms_window_start:
+        time.sleep(1)
+        try: 
+            valid_ssms_window_start = find_new_image('docs/ssms connect to server.png')
+        except Exception as e:
+            print(e)
+            continue
     time.sleep(0.33)  # Small delay before starting
 
     # Step 1: Find and click the 'Server Name' field based on the image
@@ -182,9 +192,9 @@ def click_on_server_name():
         print(f"Finding Image Issue {e}")
 
 
-def find_new_query_image():
+def find_new_image(image_name='docs/ssms new query.png'):
     # Step 1: Locate the "ssms new query" image on the screen
-    image_path = os.path.join(os.getcwd(), 'docs/ssms new query.png')
+    image_path = os.path.join(os.getcwd(), image_name)
     location = None
     
     try:
@@ -197,10 +207,12 @@ def find_new_query_image():
 
 
 
+
+
 # Function to perform the required steps
 def save_query_with_project_name(project_name):
     # Step 1: Locate the "ssms new query" image on the screen
-    location = find_new_query_image()
+    location = find_new_image()
     
     if location:
         # Get the top-left coordinates of the image and normalize to center of image

@@ -352,3 +352,4 @@ if __name__ == "__main__":
     jsonl_file="docs/parsed_chewbaca.jsonl"
     data = load_data(jsonl_file)
     main(jsonl_file)
+    
