@@ -21,10 +21,12 @@ def get_sql_query(transformed_path):
     WHERE c.name LIKE '%<column_name>%';
     */
 
-    /* The paths have been prepared for your discretion */
+    /* The paths have been prepared for your discretion
+    
     {sql_update_1}
     {sql_update_2}
 
+     */
     /* Enjoy your Flight! */
     """
     return useful_selects

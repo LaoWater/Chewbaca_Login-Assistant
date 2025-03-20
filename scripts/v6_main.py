@@ -8,17 +8,34 @@ import time
 from datetime import datetime
 import tkinter as tk
 from tkinter import messagebox, simpledialog
+import shutil
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.support import expected_conditions as EC
 from scripts.database_engine import database_login_engine
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 
 # Function to access Webshare
 def access_webshare(entry):
+
+    chrome_options = Options()
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_argument("--disable-infobars")
+
+
+
     driver = webdriver.Chrome()  # Ensure you have the correct WebDriver for your browser
     driver.maximize_window()  # Maximize window to ensure visibility of elements
+
+    service = driver.service
+    print(f"WebDriver is using ChromeDriver located at: {service.path}")
+    # Print the location of the WebDriver executable
+    driver_path = shutil.which("chromedriver")
+    print(f"WebDriver Location: {driver_path}")
 
     try:
         # Access the Webshare URL

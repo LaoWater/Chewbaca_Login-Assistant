@@ -78,7 +78,7 @@ def alt_tab_to_ssms():
 
 
 # Loop to wait until the correct SSMS window is found, then activate it
-def bring_ssms_to_foreground(retries=100, delay=1):
+def bring_ssms_to_foreground(retries=200, delay=1):
     ssms_window = None
     attempt = 0
     # Absolute mininum time to initialize
